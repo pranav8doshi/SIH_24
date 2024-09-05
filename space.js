@@ -17,7 +17,9 @@ renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 
 // Earth Group Setup
 const earthGroup = new THREE.Group();
-earthGroup.rotation.z = -23.4 * Math.PI / 180;
+
+
+earthGroup.rotation.z = -23.4 * Math.PI / 180; // earth's axial title in radians
 scene.add(earthGroup);
 new OrbitControls(camera, renderer.domElement);
 const detail = 12;
@@ -25,8 +27,8 @@ const loader = new THREE.TextureLoader();
 const geometry = new THREE.IcosahedronGeometry(1, detail);
 const material = new THREE.MeshPhongMaterial({
   map: loader.load("./textures/00_earthmap1k.jpg"),
-  specularMap: loader.load("./textures/02_earthspec1k.jpg"),
-  bumpMap: loader.load("./textures/01_earthbump1k.jpg"),
+  specularMap: loader.load("./textures/02_earthspec1k.jpg"), // used for reflectivity of 3D objects
+  bumpMap: loader.load("./textures/01_earthbump1k.jpg"),  // for simulating wrinkers and bumps, affects lightening
   bumpScale: 0.04,
 });
 const earthMesh = new THREE.Mesh(geometry, material);
@@ -43,8 +45,8 @@ const cloudsMat = new THREE.MeshStandardMaterial({
   map: loader.load("./textures/04_earthcloudmap.jpg"),
   transparent: true,
   opacity: 0.8,
-  blending: THREE.AdditiveBlending,
-  alphaMap: loader.load('./textures/05_earthcloudmaptrans.jpg'),
+  blending: THREE.AdditiveBlending, // blending - combines textures 
+  alphaMap: loader.load('./textures/05_earthcloudmaptrans.jpg'), // for transparency of objects
 });
 const cloudsMesh = new THREE.Mesh(geometry, cloudsMat);
 cloudsMesh.scale.setScalar(1.003);
@@ -69,13 +71,13 @@ const radius = 2.5; // 5 cm in meters
 
 for (let i = 0; i < numAsteroids; i++) {
     const ast_gem = new THREE.IcosahedronGeometry(0.085, 1);
-    const ast_mat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const ast_mat = new THREE.MeshBasicMaterial({ color: THREE.Color.NAMES.silver });
     const ast = new THREE.Mesh(ast_gem, ast_mat);
 
     ast.position.x = Math.random() * 2 - 1; // Random position between -1 and 1
     ast.position.y = Math.random() * 2 - 1; // Random position between -1 and 1
     ast.position.z = Math.random() * 2 - 1; // Random position between -1 and 1
-    ast.position.normalize().multiplyScalar(radius);
+    ast.position.normalize().multiplyScalar(radius); // direction is preserved and objects size is set to radius
 
     scene.add(ast);
 
@@ -113,9 +115,14 @@ function animate() {
     // Update the position and spherical coordinates of each asteroid
     asteroids.forEach( (asteroid ,idx) => {
         asteroid.name = `Asteroid ${idx+1}`;
-        asteroid.angle += 0.0025; // Speed of revolution
+        asteroid.angle += 0.00125; // Speed of revolution
         asteroid.mesh.position.x = radius * Math.cos(asteroid.angle);
-        asteroid.mesh.position.y = radius * Math.sin(asteroid.angle);
+        // asteroid.mesh.position.y = radius * Math.sin(asteroid.angle);
+
+        if(idx < numAsteroids/2)
+            asteroid.mesh.position.y = radius * Math.sin(asteroid.angle);
+        else
+            asteroid.mesh.position.y = radius * Math.cos(asteroid.angle);
 
         const altitude = asteroid.mesh.position.length();
         const latitude = THREE.MathUtils.radToDeg(Math.asin(asteroid.mesh.position.y / altitude));
